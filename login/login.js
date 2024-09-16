@@ -6,7 +6,7 @@ document.getElementById('loginForm').addEventListener('submit', async function (
     const password = document.getElementById('password').value;
 
     try {
-        const response = await fetch('https://appointment-management-da90d3c8d8ca.herokuapp.com/security/login', {
+        const response = await fetch('http://a7f10b477b1ee4578bb3d5ccbb65798c-39982317.us-east-2.elb.amazonaws.com/security/login', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
