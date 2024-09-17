@@ -1,0 +1,99 @@
+pipeline {
+    agent any
+
+    environment {
+        AWS_REGION = 'us-east-2'  
+        ECR_REPO_URI = '626635406112.dkr.ecr.us-east-2.amazonaws.com/appointment-management-frontend-app' 
+        BEANSTALK_APP_NAME = 'appointment-app-frontend' 
+        BEANSTALK_ENV_NAME = 'AppointmentApp-Frontend-env' 
+        DOCKER_IMAGE = 'frontend-app:latest'  // Tag for the Docker image
+        VERSION_LABEL = "v${env.BUILD_NUMBER}" 
+    }
+
+    stages {
+        // Stage 1: Checkout code from GitHub
+        stage('Checkout Code') {
+            steps {
+                git url: 'https://github.com/anandakmagar/appointment-management-app.git', branch: 'main'
+            }
+        }
+
+    stages {
+        // Stage 2: Build Docker Image
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    // Build Docker image using the 'Dockerfile' in the root of the project
+                    sh 'docker build -t frontend-app .'
+                }
+            }
+        }
+
+        // Stage 3: Tag Docker Image
+        stage('Tag Docker Image') {
+            steps {
+                script {
+                    // Tag the Docker image using the Jenkins build ID and tag as 'latest'
+                    sh "docker tag frontend-app ${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}"
+                    sh "docker tag frontend-app ${ECR_REGISTRY}/${ECR_REPOSITORY}:latest"
+                }
+            }
+        }
+
+        // Stage 4: Push Docker Image to ECR
+        stage('Push Docker Image to ECR') {
+            steps {
+                script {
+                    // Log in to AWS ECR
+                    withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-credentials']]) {
+                        sh "aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ECR_REGISTRY}"
+                        
+                        // Push both the tagged and 'latest' versions of the Docker image
+                        sh "docker push ${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}"
+                        sh "docker push ${ECR_REGISTRY}/${ECR_REPOSITORY}:latest"
+                        
+                        // Optionally, clean up local Docker images after the push
+                        sh "docker rmi ${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG} ${ECR_REGISTRY}/${ECR_REPOSITORY}:latest"
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            cleanWs()  // Clean workspace after the pipeline is completed
+        }
+    }
+}
+
+        // Stage 5: Deploy to Elastic Beanstalk
+        stage('Deploy to Elastic Beanstalk') {
+            steps {
+                script {
+                    sh """
+                    aws elasticbeanstalk create-application-version \
+                        --application-name ${BEANSTALK_APP_NAME} \
+                        --version-label ${VERSION_LABEL} \
+                        --source-bundle S3Bucket=${S3_BUCKET},S3Key=cert-${VERSION_LABEL}.zip \
+                        --region ${AWS_REGION}
+
+                    aws elasticbeanstalk update-environment \
+                        --environment-name ${BEANSTALK_ENV_NAME} \
+                        --version-label ${VERSION_LABEL} \
+                        --region ${AWS_REGION}
+                    """
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'Deployment Successful!'
+        }
+        failure {
+            echo 'Deployment Failed!'
+        }
+    }
+}
