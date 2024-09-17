@@ -9,13 +9,20 @@ pipeline {
         BEANSTALK_ENV_NAME = 'AppointmentApp-Frontend-env'  // Elastic Beanstalk Environment Name
         DOCKER_IMAGE = 'frontend-app:latest'  // Docker image tag
         VERSION_LABEL = "v${env.BUILD_NUMBER}"  // Jenkins build number used as version label
+        GITHUB_USERNAME = 'anandakmagar@gmail.com'
+        GITHUB_PASSWORD = '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'
     }
 
     stages {
         // Stage 1: Checkout code from GitHub
         stage('Checkout Code') {
             steps {
-                git url: 'https://github.com/anandakmagar/appointment-management-app.git', branch: 'main'
+                script {
+                    sh """
+                    git clone https://${GITHUB_USERNAME}:${GITHUB_PASSWORD}@github.com/anandakmagar/appointment-management-app.git
+                    cd appointment-management-app
+                    """
+                }
             }
         }
 
