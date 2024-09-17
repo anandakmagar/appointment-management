@@ -4,7 +4,7 @@ pipeline {
     environment {
         AWS_REGION = 'us-east-2'  // AWS region
         ECR_REGISTRY = '626635406112.dkr.ecr.us-east-2.amazonaws.com'  // ECR registry URL
-        ECR_REPOSITORY = 'appointment-management-frontend-app'  // ECR repository
+        ECR_REPOSITORY = 'appointment-app-frontend-ecr'  // ECR repository
         BEANSTALK_APP_NAME = 'appointment-app-frontend'  // Elastic Beanstalk Application Name
         BEANSTALK_ENV_NAME = 'AppointmentApp-Frontend-env'  // Elastic Beanstalk Environment Name
         DOCKER_IMAGE = 'frontend-app:latest'  // Docker image tag
