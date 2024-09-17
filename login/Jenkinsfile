@@ -4,25 +4,18 @@ pipeline {
     environment {
         AWS_REGION = 'us-east-2'  // AWS region
         ECR_REGISTRY = '626635406112.dkr.ecr.us-east-2.amazonaws.com'  // ECR registry URL
-        ECR_REPOSITORY = 'appointment-app-frontend-ecr'  // ECR repository
+        ECR_REPOSITORY = 'appointment-management-frontend-app'  // ECR repository
         BEANSTALK_APP_NAME = 'appointment-app-frontend'  // Elastic Beanstalk Application Name
         BEANSTALK_ENV_NAME = 'AppointmentApp-Frontend-env'  // Elastic Beanstalk Environment Name
         DOCKER_IMAGE = 'frontend-app:latest'  // Docker image tag
         VERSION_LABEL = "v${env.BUILD_NUMBER}"  // Jenkins build number used as version label
-        GITHUB_USERNAME = 'anandakmagar@gmail.com'
-        GITHUB_PASSWORD = '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'
     }
 
     stages {
         // Stage 1: Checkout code from GitHub
         stage('Checkout Code') {
             steps {
-                script {
-                    sh """
-                    git clone https://${GITHUB_USERNAME}:${GITHUB_PASSWORD}@github.com/anandakmagar/appointment-management-app.git
-                    cd appointment-management-app
-                    """
-                }
+                git url: 'https://github.com/anandakmagar/appointment-management-app.git', branch: 'main'
             }
         }
 
